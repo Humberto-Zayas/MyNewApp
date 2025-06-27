@@ -1,0 +1,30 @@
+# set environment variables to clean up logs
+[variables]
+NPM_CONFIG_UPDATE_NOTIFIER = 'false'
+NPM_CONFIG_FUND = 'false'
+CADDY_VERSION = '2.7.6'
+
+# install Caddy
+[phases.caddy]
+dependsOn = ['setup']
+cmds = [
+  'curl -fsSLo caddy.tar.gz "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"',
+  'tar -zxvf caddy.tar.gz caddy',
+  'chmod +x caddy'
+]
+
+# format Caddyfile
+[phases.fmt]
+dependsOn = ['caddy']
+cmds = ['caddy fmt --overwrite Caddyfile']
+
+# export expo web
+[phases.export]
+dependsOn = ['install']
+cmds = ['npx expo export:web']
+
+# final image with only necessary files
+[start]
+runImage = 'ubuntu:20.04'
+onlyIncludeFiles = ['caddy', 'Caddyfile', 'dist']
+cmd = './caddy run --config Caddyfile --adapter caddyfile 2>&1'
