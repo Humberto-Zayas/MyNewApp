@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import {
-  PanGestureHandler,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -32,12 +28,12 @@ export default function SwipeScreen() {
     rotate.value = 0;
   };
 
-  const gesture = useAnimatedGestureHandler({
-    onActive: (event) => {
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
       translateX.value = event.translationX;
       rotate.value = event.translationX / 20;
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
       if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
         const toX = translateX.value > 0 ? SCREEN_WIDTH : -SCREEN_WIDTH;
         translateX.value = withSpring(toX, {}, () => {
@@ -47,8 +43,7 @@ export default function SwipeScreen() {
         translateX.value = withSpring(0);
         rotate.value = withSpring(0);
       }
-    },
-  });
+    });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -66,15 +61,13 @@ export default function SwipeScreen() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <PanGestureHandler onGestureEvent={gesture}>
-          <Animated.View style={[styles.card, animatedStyle]}>
-            <Text style={styles.text}>{cards[cardIndex].text}</Text>
-          </Animated.View>
-        </PanGestureHandler>
-      </View>
-    </GestureHandlerRootView>
+    <View style={styles.container}>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.card, animatedStyle]}>
+          <Text style={styles.text}>{cards[cardIndex].text}</Text>
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
 
