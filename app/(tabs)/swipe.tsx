@@ -7,6 +7,8 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import { useCardDispatch } from '@/store/CardStore';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
@@ -21,8 +23,15 @@ export default function SwipeScreen() {
   const [cardIndex, setCardIndex] = useState(0);
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
+  const dispatch = useCardDispatch();
 
-  const handleSwipe = () => {
+  const currentCard = cards[cardIndex];
+
+
+  const handleSwipe = (direction: 'like' | 'dislike') => {
+    if (currentCard) {
+      dispatch({ type: direction === 'like' ? 'LIKE_CARD' : 'DISLIKE_CARD', id: currentCard.id });
+    }
     setCardIndex((prev) => (prev + 1 < cards.length ? prev + 1 : 0));
     translateX.value = 0;
     rotate.value = 0;
@@ -36,8 +45,10 @@ export default function SwipeScreen() {
     .onEnd(() => {
       if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
         const toX = translateX.value > 0 ? SCREEN_WIDTH : -SCREEN_WIDTH;
+        const direction = translateX.value > 0 ? 'like' : 'dislike'; // ✅ restore this
+
         translateX.value = withSpring(toX, {}, () => {
-          runOnJS(handleSwipe)();
+          runOnJS(handleSwipe)(direction);
         });
       } else {
         translateX.value = withSpring(0);
