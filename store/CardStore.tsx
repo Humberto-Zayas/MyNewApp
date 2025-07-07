@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useReducer } from 'react';
 
-type State = {
-  likedCards: string[];
+type CardAction =
+  | { type: 'DISLIKE_CARD'; id: string }
+  | { type: 'LIKE_CARD'; id: string };
+
+type CardState = {
   dislikedCards: string[];
+  likedCards: string[];
 };
 
-type Action =
-  | { type: 'LIKE_CARD'; id: string }
-  | { type: 'DISLIKE_CARD'; id: string }
-  | { type: 'RESET' };
 
 const initialState: State = {
   likedCards: [],
@@ -18,22 +18,18 @@ const initialState: State = {
 const CardStateContext = createContext<State | undefined>(undefined);
 const CardDispatchContext = createContext<React.Dispatch<Action> | undefined>(undefined);
 
-function reducer(state: State, action: Action): State {
+function reducer(state: CardState, action: CardAction): CardState {
   switch (action.type) {
-    case 'LIKE_CARD':
-      return {
-        ...state,
-        likedCards: [...state.likedCards, action.id],
-        dislikedCards: state.dislikedCards.filter(id => id !== action.id),
-      };
     case 'DISLIKE_CARD':
       return {
         ...state,
         dislikedCards: [...state.dislikedCards, action.id],
-        likedCards: state.likedCards.filter(id => id !== action.id),
       };
-    case 'RESET':
-      return initialState;
+    case 'LIKE_CARD':
+      return {
+        ...state,
+        likedCards: [...state.likedCards, action.id],
+      };
     default:
       return state;
   }
